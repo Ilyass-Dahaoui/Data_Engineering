@@ -1,7 +1,3 @@
-"""
-Main pipeline orchestrator.
-Coordinates the end-to-end data pipeline: Ingest -> Transform -> Load.
-"""
 import sys
 from datetime import datetime
 
@@ -16,14 +12,6 @@ from load import (
 
 
 def run_pipeline():
-    """
-    Execute the complete data pipeline.
-    
-    Pipeline stages:
-    1. Ingestion: Read raw data files
-    2. Transformation: Clean and transform data
-    3. Loading: Write processed data
-    """
     start_time = datetime.now()
     print("=" * 60)
     print("STARTING DATA PIPELINE")
@@ -31,14 +19,12 @@ def run_pipeline():
     print(f"Started at: {start_time.strftime('%Y-%m-%d %H:%M:%S')}\n")
     
     try:
-        # STAGE 1: INGESTION
         print("\n" + "=" * 60)
         print("STAGE 1: DATA INGESTION")
         print("=" * 60)
         raw_apps = ingest_apps_metadata()
         raw_reviews = ingest_apps_reviews()
         
-        # STAGE 2: TRANSFORMATION
         print("\n" + "=" * 60)
         print("STAGE 2: DATA TRANSFORMATION")
         print("=" * 60)
@@ -48,7 +34,6 @@ def run_pipeline():
         print("\nAggregating data for analytics...")
         analytics_data = transform_for_analytics(clean_apps, clean_reviews)
         
-        # STAGE 3: LOADING
         print("\n" + "=" * 60)
         print("STAGE 3: DATA LOADING")
         print("=" * 60)
@@ -56,7 +41,6 @@ def run_pipeline():
         save_json(clean_reviews, APPS_REVIEWS_PROCESSED)
         save_json(analytics_data, APPS_WITH_METRICS)
         
-        # SUMMARY
         end_time = datetime.now()
         duration = (end_time - start_time).total_seconds()
         
