@@ -4,16 +4,15 @@ import os
 from datetime import datetime
 from google_play_scraper import search, app, reviews, Sort
 
-# Use relative path - save to DATA/raw directory
 RAW_DATA_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "DATA", "raw")
 LANG = "en"
 COUNTRY = "us"
 
-SEARCH_QUERY = "AI note taking"
-MAX_APPS = 50  # Increased from 20 to get more apps
-REVIEWS_PER_APP = 200  # Reviews per request (API limit)
-MAX_REVIEWS_PER_APP = 5000  # Maximum reviews to fetch per app
-SLEEP_SECONDS = 1  # Reduced sleep time for faster extraction
+SEARCH_QUERY = "note taking"
+MAX_APPS = 50
+REVIEWS_PER_APP = 200
+MAX_REVIEWS_PER_APP = 5000
+SLEEP_SECONDS = 1
 
 def json_serializer(obj):
     if isinstance(obj, datetime):
@@ -49,13 +48,8 @@ def extract_apps_metadata():
     return apps_metadata
 
 def extract_apps_reviews(apps_metadata):
-    """
-    Extract reviews using continuation tokens to get maximum data.
-    Writes with append mode to prevent data loss if code crashes.
-    """
     reviews_file = f"{RAW_DATA_PATH}/apps_reviews.json"
     
-    # Clear the file if it exists (start fresh)
     if os.path.exists(reviews_file):
         os.remove(reviews_file)
     
@@ -70,7 +64,6 @@ def extract_apps_reviews(apps_metadata):
             continuation_token = None
             app_review_count = 0
             
-            # Keep fetching until no more reviews available
             while True:
                 result, continuation_token = reviews(
                     app_id,
@@ -81,12 +74,10 @@ def extract_apps_reviews(apps_metadata):
                     continuation_token=continuation_token
                 )
 
-                # Add app metadata to each review
                 for r in result:
                     r["app_id"] = app_id
                     r["app_name"] = app_name
                 
-                # Append to file immediately to prevent data loss
                 with open(reviews_file, "a", encoding="utf-8") as f:
                     for r in result:
                         json.dump(r, f, ensure_ascii=False, default=json_serializer)
@@ -96,7 +87,6 @@ def extract_apps_reviews(apps_metadata):
                 total_reviews += len(result)
                 print(f"  Fetched {len(result)} reviews (total for this app: {app_review_count})")
                 
-                # Break if no more reviews, no continuation token, or reached max limit
                 if not continuation_token or len(result) == 0 or app_review_count >= MAX_REVIEWS_PER_APP:
                     if app_review_count >= MAX_REVIEWS_PER_APP:
                         print(f"  Reached maximum limit of {MAX_REVIEWS_PER_APP} reviews for this app")
@@ -115,7 +105,6 @@ def main():
     print("Starting Google Play extraction pipeline...")
     print(f"Raw data will be saved to: {RAW_DATA_PATH}\n")
 
-    # Extract apps metadata
     apps_metadata = extract_apps_metadata()
 
     with open(f"{RAW_DATA_PATH}/apps_metadata.json", "w", encoding="utf-8") as f:
@@ -123,7 +112,6 @@ def main():
 
     print(f"\nSaved {len(apps_metadata)} apps metadata records")
 
-    # Extract reviews with continuation tokens and append mode
     total_reviews = extract_apps_reviews(apps_metadata)
 
     print(f"\nTotal reviews saved: {total_reviews}")
