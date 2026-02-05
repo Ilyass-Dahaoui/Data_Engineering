@@ -1,0 +1,9 @@
+# Data Engineering Lab 1 - Python Data Pipeline
+# Required packages for the project
+
+# Data extraction from Google Play Store
+google-play-scraper>=1.2.4
+
+# For future labs (optional for Lab 1)
+# pandas>=2.0.0
+# numpy>=1.24.0
