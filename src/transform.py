@@ -1,26 +1,12 @@
-"""
-Transform module: Clean and transform raw data.
-Handles data quality issues, missing values, and standardization.
-"""
 from typing import List, Dict, Any
 from datetime import datetime
 
 
 def clean_apps_metadata(apps: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """
-    Clean and standardize apps metadata.
-    
-    Args:
-        apps: Raw list of app metadata
-        
-    Returns:
-        Cleaned list of app metadata
-    """
     print("Cleaning apps metadata...")
     cleaned_apps = []
     
     for app in apps:
-        # Skip if critical fields are missing
         if not app.get('appId') or not app.get('title'):
             continue
             
@@ -50,24 +36,13 @@ def clean_apps_metadata(apps: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 
 
 def clean_apps_reviews(reviews: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """
-    Clean and standardize apps reviews.
-    
-    Args:
-        reviews: Raw list of reviews
-        
-    Returns:
-        Cleaned list of reviews
-    """
     print("Cleaning apps reviews...")
     cleaned_reviews = []
     
     for review in reviews:
-        # Skip if critical fields are missing
         if not review.get('app_id') or review.get('content') is None:
             continue
         
-        # Parse date if it's a string
         review_date = review.get('at')
         if isinstance(review_date, str):
             try:
@@ -97,22 +72,10 @@ def clean_apps_reviews(reviews: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 
 def transform_for_analytics(apps: List[Dict[str, Any]], 
                             reviews: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """
-    Aggregate reviews and join with app metadata for analytics.
-    
-    Args:
-        apps: Cleaned app metadata
-        reviews: Cleaned reviews
-        
-    Returns:
-        List of apps with aggregated review metrics
-    """
     print("Transforming data for analytics...")
     
-    # Create app lookup dictionary
     app_dict = {app['app_id']: app for app in apps}
     
-    # Aggregate reviews by app
     review_aggregates = {}
     for review in reviews:
         app_id = review['app_id']
@@ -143,20 +106,16 @@ def transform_for_analytics(apps: List[Dict[str, Any]],
         if review['reply_content']:
             agg['reviews_with_reply'] += 1
     
-    # Calculate averages and combine with app data
     analytics_ready = []
     for app_id, agg in review_aggregates.items():
         if app_id in app_dict:
             app_data = app_dict[app_id].copy()
             
-            # Calculate metrics
             agg['avg_score'] = agg['score_sum'] / agg['total_reviews'] if agg['total_reviews'] > 0 else 0
             agg['reply_rate'] = agg['reviews_with_reply'] / agg['total_reviews'] if agg['total_reviews'] > 0 else 0
             
-            # Remove intermediate calculation fields
             del agg['score_sum']
             
-            # Merge app data with aggregates
             app_data['review_metrics'] = agg
             analytics_ready.append(app_data)
     
@@ -165,20 +124,16 @@ def transform_for_analytics(apps: List[Dict[str, Any]],
 
 
 if __name__ == "__main__":
-    # Test transformation
     print("Testing data transformation...")
     from ingest import ingest_apps_metadata, ingest_apps_reviews
     
     try:
-        # Ingest
         raw_apps = ingest_apps_metadata()
         raw_reviews = ingest_apps_reviews()
         
-        # Clean
         clean_apps = clean_apps_metadata(raw_apps)
         clean_reviews = clean_apps_reviews(raw_reviews)
         
-        # Transform
         analytics_data = transform_for_analytics(clean_apps, clean_reviews)
         
         print("\n✓ Transformation successful!")
