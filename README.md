@@ -66,7 +66,7 @@ Processed files will be in `DATA/processed/`:
 
 ## Key Features
 
-### ✅ Feedback Implemented
+###  Feedback Implemented
 - **Continuation Tokens**: Reviews extraction uses pagination tokens to fetch maximum available data
 - **Append Mode**: Reviews are written incrementally to prevent data loss if extraction crashes
 - **Robust Error Handling**: Pipeline continues even if individual apps fail
