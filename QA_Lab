@@ -1,0 +1,22 @@
+## Part1
+- Q: Based on your exploration, identify at least five issues in the raw datasets that would cause problems 
+- Q: for analytics or downstream use. 
+- Q: Which applications appear to perform best or worst according to user reviews? 
+- Q: Are user ratings improving or declining over time? 
+- Q: Are there noticeable differences in review volume between applications? 
+
+## Part 2
+- Q: How many changes were required in your code to support this new batch? 
+- Q: Is your pipeline clearly performing a full refresh, or does this behavior remain implicit? 
+- Q: How are duplicate reviews handled? 
+- Q: What happens to reviews that reference applications not present in the applications dataset? 
+- Q: Which parts of your pipeline rely on hard-coded column names? 
+- Q: Does the pipeline fail explicitly, or does it produce incorrect results silently?  
+- Q: How localized or widespread are the required code changes? 
+- Q: How does your pipeline handle invalid ratings or timestamps? 
+- Q: Are problematic records filtered out, transformed, or propagated downstream? 
+- Q: Do data quality issues surface early, or do they affect aggregated metrics silently? 
+- Q: Where in your pipeline would this new logic naturally belong? 
+- Q: How many parts of the pipeline would need to change to support this request? 
+- Q: Would this logic be easy to reuse or maintain if additional business questions were introduced? 
+- Q: Does your current pipeline structure clearly separate data preparation from analytical logic? 
