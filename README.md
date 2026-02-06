@@ -3,7 +3,7 @@ We have reviewed all your comments from yesterday
 
 ## Team
 - **ilyas DAHAOUI**
-- **Mohammed Adam KHALIL**
+- **Mohammed Adam KHALI**
   
 ## Key Features
 
