@@ -1,6 +1,6 @@
 ## Last Update
-13/02/2026: We haven’t made much progress on Lab 2 yet, but we’ll continue working on it as soon as possible.
-last weaak:We have reviewed all your comments
+- 13/02/2026: We haven’t made much progress on Lab 2 yet, but we’ll continue working on it as soon as possible.
+- last weaak:We have reviewed all your comments
 
 ## Team
 - **ilyas DAHAOUI**
