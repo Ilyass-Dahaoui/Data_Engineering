@@ -24,6 +24,11 @@ Thumbs.db
 # Data files (optional - uncomment if you want to ignore large data files)
 # DATA/raw/*.json
 # DATA/processed/*.json
+# DuckDB database files (large; should not be tracked)
+*.duckdb
+# Specific paths (explicit)
+dbt_project/data/dbt.duckdb
+DATA/dbt.duckdb
 
 # Logs
 *.log
