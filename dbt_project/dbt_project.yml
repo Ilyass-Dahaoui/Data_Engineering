@@ -1,0 +1,17 @@
+name: "data_pipeline"
+version: "1.0"
+config-version: 2
+
+profile: "data_pipeline_profile"
+
+source-paths: ["models"]
+
+target-path: "target"
+
+models:
+  data_pipeline:
+    +materialized: table
+    staging:
+      +materialized: view
+    marts:
+      +materialized: table

@@ -8,27 +8,14 @@
 
 ### Option 1: Using venv (Built-in Python)
 ```powershell
-# Create virtual environment
 python -m venv venv
 
-# Activate virtual environment
 .\venv\Scripts\Activate.ps1
 
-# Install dependencies
 pip install -r requirements.txt
 ```
 
-### Option 2: Using Conda
-```powershell
-# Create virtual environment
-conda create -n data-eng-lab python=3.10
 
-# Activate environment
-conda activate data-eng-lab
-
-# Install dependencies
-pip install -r requirements.txt
-```
 
 ## Project Structure
 ```
@@ -56,19 +43,15 @@ Data_Engineering-main/
 
 ### Step 1: Extract Raw Data (Optional - data already provided)
 ```powershell
-# Navigate to raw data directory
 cd DATA\raw
 
-# Run extraction script
 python extract_data.py
 ```
 
 ### Step 2: Run the Data Pipeline
 ```powershell
-# From project root directory
 cd src
 
-# Run the pipeline
 python pipeline.py
 ```
 
@@ -84,25 +67,10 @@ Each module can be tested independently:
 ```powershell
 cd src
 
-# Test ingestion
 python ingest.py
 
-# Test transformation
 python transform.py
 
-# Test loading
 python load.py
 ```
 
-## Troubleshooting
-
-### Import Errors
-Make sure you're in the correct directory when running scripts:
-- Run `pipeline.py` from the `src/` directory
-- Or modify your PYTHONPATH
-
-### Virtual Environment Not Activated
-Make sure you see `(venv)` or `(data-eng-lab)` in your terminal prompt before running scripts.
-
-### Missing Data Files
-Ensure raw data files exist in `DATA/raw/` before running the pipeline.

@@ -70,8 +70,115 @@ def clean_apps_reviews(reviews: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return cleaned_reviews
 
 
+
+def build_star_schema(apps: List[Dict[str, Any]],
+                      reviews: List[Dict[str, Any]]) -> Dict[str, List[Dict[str, Any]]]:
+    """Return star schema tables derived from clean app and review lists.
+
+    The return value is a dict with keys ``dim_apps``, ``dim_categories``,
+    ``dim_developers``, ``dim_date`` and ``fact_reviews`` matching the schema
+    provided by the user.  Surrogate keys are generated as consecutive
+    integers starting at 1 within each dimension.
+    """
+    # build category and developer dimensions
+    categories = {}
+    developers = {}
+    dim_apps = []
+
+    for app in apps:
+        cat = app.get('category') or 'Unknown'
+        if cat not in categories:
+            categories[cat] = len(categories) + 1
+        dev_name = app.get('developer') or 'Unknown'
+        if dev_name not in developers:
+            developers[dev_name] = len(developers) + 1
+
+    # build dim_apps rows
+    for app in apps:
+        dim_apps.append({
+            'app_key': len(dim_apps) + 1,
+            'app_id': app['app_id'],
+            'app_name': app.get('title'),
+            'developer_key': developers.get(app.get('developer') or 'Unknown'),
+            'category_key': categories.get(app.get('category') or 'Unknown'),
+            'price': app.get('price'),
+            'is_paid': not app.get('free', True),
+            'installs': app.get('installs'),
+            'catalog_rating': app.get('rating'),
+            'ratings_count': app.get('ratings_count')
+        })
+
+    # prepare dim_categories and dim_developers lists
+    dim_categories = [
+        {'category_key': k, 'category_name': name}
+        for name, k in categories.items()
+    ]
+    dim_developers = [
+        {'developer_key': k, 'developer_name': name, 'developer_website': None, 'developer_email': None}
+        for name, k in developers.items()
+    ]
+
+    # date dimension and fact_reviews
+    dim_date = {}
+    fact_reviews = []
+
+    for rev in reviews:
+        # convert review date to date_key
+        dt_str = rev.get('at')
+        if dt_str:
+            try:
+                dt = datetime.fromisoformat(dt_str)
+            except ValueError:
+                dt = None
+        else:
+            dt = None
+        if dt:
+            date_only = dt.date()
+            if date_only not in dim_date:
+                key = len(dim_date) + 1
+                dim_date[date_only] = key
+        else:
+            key = None
+        fact_reviews.append({
+            'review_id': rev.get('review_id'),
+            'app_key': next((r['app_key'] for r in dim_apps if r['app_id'] == rev.get('app_id')), None),
+            'developer_key': next((r['developer_key'] for r in dim_apps if r['app_id'] == rev.get('app_id')), None),
+            'date_key': dim_date.get(date_only) if dt else None,
+            'rating': rev.get('score'),
+            'thumbs_up_count': rev.get('thumbs_up_count'),
+            'review_text': rev.get('content'),
+            'review_version': rev.get('review_created_version')
+        })
+
+    dim_date_rows = []
+    for date_val, key in dim_date.items():
+        dim_date_rows.append({
+            'date_key': key,
+            'date': date_val.isoformat(),
+            'year': date_val.year,
+            'month': date_val.month,
+            'quarter': (date_val.month - 1) // 3 + 1,
+            'day_of_week': date_val.isoweekday(),
+            'is_weekend': date_val.weekday() >= 5
+        })
+
+    return {
+        'dim_apps': dim_apps,
+        'dim_categories': dim_categories,
+        'dim_developers': dim_developers,
+        'dim_date': dim_date_rows,
+        'fact_reviews': fact_reviews
+    }
+
+
 def transform_for_analytics(apps: List[Dict[str, Any]], 
                             reviews: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Keep existing metrics aggregation for backwards compatibility.
+
+    This function continues to produce the simple analytics records used in Lab
+   1; it is not aware of the full star schema.  The new :func:`build_star_schema`
+    function should be used when schema generation is required.
+    """
     print("Transforming data for analytics...")
     
     app_dict = {app['app_id']: app for app in apps}

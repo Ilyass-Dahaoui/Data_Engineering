@@ -1,12 +1,7 @@
 import json
 import os
 from typing import List, Dict, Any
-from config import (
-    APPS_METADATA_PROCESSED,
-    APPS_REVIEWS_PROCESSED,
-    APPS_WITH_METRICS,
-    PROCESSED_DATA_DIR
-)
+import config
 
 
 def save_json(data: List[Dict[str, Any]], filepath: str, indent: int = 2) -> None:
@@ -19,18 +14,31 @@ def save_json(data: List[Dict[str, Any]], filepath: str, indent: int = 2) -> Non
 
 
 def load_processed_apps():
-    print(f"Loading from {APPS_METADATA_PROCESSED}")
-    with open(APPS_METADATA_PROCESSED, 'r', encoding='utf-8') as f:
+    path = config.APPS_METADATA_PROCESSED
+    print(f"Loading from {path}")
+    with open(path, 'r', encoding='utf-8') as f:
+        return json.load(f)
+
+
+def load_processed_apps_scd2():
+    # history table may not exist on first run
+    path = config.APPS_METADATA_SCD2
+    if not os.path.exists(path):
+        return []
+    print(f"Loading SCD2 history from {path}")
+    with open(path, 'r', encoding='utf-8') as f:
         return json.load(f)
 
 
 def load_processed_reviews():
-    print(f"Loading from {APPS_REVIEWS_PROCESSED}")
-    with open(APPS_REVIEWS_PROCESSED, 'r', encoding='utf-8') as f:
+    path = config.APPS_REVIEWS_PROCESSED
+    print(f"Loading from {path}")
+    with open(path, 'r', encoding='utf-8') as f:
         return json.load(f)
 
 
 def load_analytics_data():
-    print(f"Loading from {APPS_WITH_METRICS}")
-    with open(APPS_WITH_METRICS, 'r', encoding='utf-8') as f:
+    path = config.APPS_WITH_METRICS
+    print(f"Loading from {path}")
+    with open(path, 'r', encoding='utf-8') as f:
         return json.load(f)

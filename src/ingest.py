@@ -1,7 +1,7 @@
 import json
 import os
 from typing import List, Dict, Any
-from config import APPS_METADATA_RAW, APPS_REVIEWS_RAW
+import config
 
 
 def load_json_file(filepath: str) -> List[Dict[str, Any]]:
@@ -30,13 +30,13 @@ def load_json_file(filepath: str) -> List[Dict[str, Any]]:
 
 def ingest_apps_metadata() -> List[Dict[str, Any]]:
     print("Ingesting apps metadata...")
-    data = load_json_file(APPS_METADATA_RAW)
+    data = load_json_file(config.APPS_METADATA_RAW)
     print(f"Loaded {len(data)} app records")
     return data
 
 
 def ingest_apps_reviews() -> List[Dict[str, Any]]:
     print("Ingesting apps reviews...")
-    data = load_json_file(APPS_REVIEWS_RAW)
+    data = load_json_file(config.APPS_REVIEWS_RAW)
     print(f"Loaded {len(data)} review records")
     return data

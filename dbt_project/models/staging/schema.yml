@@ -1,0 +1,18 @@
+version: 2
+
+models:
+  - name: stg_apps
+    columns:
+      - name: app_id
+        tests:
+          - not_null
+          - unique
+  - name: stg_reviews
+    columns:
+      - name: review_id
+        tests:
+          - not_null
+          - unique
+      - name: app_id
+        tests:
+          - not_null
