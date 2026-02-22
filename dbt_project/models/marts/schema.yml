@@ -42,15 +42,18 @@ models:
       - name: app_key
         tests:
           - relationships:
-              to: ref('dim_apps_scd')
-              field: app_sk
+              arguments:
+                to: ref('dim_apps_scd')
+                field: app_sk
       - name: developer_key
         tests:
           - relationships:
-              to: ref('dim_developers')
-              field: developer_key
+              arguments:
+                to: ref('dim_developers')
+                field: developer_key
       - name: date_key
         tests:
           - relationships:
-              to: ref('dim_date')
-              field: date_key
+              arguments:
+                to: ref('dim_date')
+                field: date_key
