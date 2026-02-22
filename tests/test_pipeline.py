@@ -70,3 +70,40 @@ def test_pipeline_incremental(tmp_path):
     # check dim_apps row has expected keys
     apps_dim = json.loads((proc_dir / "dim_apps.json").read_text(encoding='utf-8'))
     assert apps_dim[0]['app_id'] == 'a1'
+
+
+def test_ingest_csv_and_clean_transform(tmp_path):
+    # create small CSV files that mimic schema drift scenarios
+    raw_dir = tmp_path / "DATA" / "raw"
+    raw_dir.mkdir(parents=True)
+    # apps_metadata with year and rating column drift
+    csv_path = raw_dir / "apps_updated.csv"
+    with open(csv_path, 'w', encoding='utf-8') as f:
+        f.write("appId,title,year,rating\n")
+        f.write("a2,AppTwo,2021,4.5\n")
+    # reviews batch file with score->rating and comments->content
+    review_csv = raw_dir / "note_taking_batch.csv"
+    with open(review_csv, 'w', encoding='utf-8') as f:
+        f.write("reviewId,app_id,rating,comments,at\n")
+        f.write("r2,a2,3,Great!,2022-01-01T00:00:00Z\n")
+
+    # adjust config paths
+    config.RAW_DATA_DIR = str(raw_dir)
+    config.APPS_METADATA_RAW = str(raw_dir / "nonexistent.json")
+    config.APPS_REVIEWS_RAW = str(raw_dir / "missing.json")
+
+    # call ingest functions
+    from src import ingest, transform
+    apps = ingest.ingest_apps_metadata()
+    reviews = ingest.ingest_apps_reviews()
+    assert len(apps) == 1
+    assert apps[0]['appId'] == 'a2'
+    assert len(reviews) == 1
+
+    # clean
+    cleaned_apps = transform.clean_apps_metadata(apps)
+    cleaned_reviews = transform.clean_apps_reviews(reviews)
+    assert cleaned_apps[0]['released'] == '2021'
+    assert cleaned_apps[0]['rating'] == 4.5
+    assert cleaned_reviews[0]['score'] == 3
+    assert cleaned_reviews[0]['content'] == 'Great!'

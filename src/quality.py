@@ -24,4 +24,7 @@ def check_reviews(reviews: List[Dict[str, Any]]) -> List[str]:
         if 'score' in r and r['score'] is not None:
             if not isinstance(r['score'], int):
                 issues.append(f"Row {i}: score not integer")
+            else:
+                if r['score'] < 1 or r['score'] > 5:
+                    issues.append(f"Row {i}: score out of range ({r['score']})")
     return issues

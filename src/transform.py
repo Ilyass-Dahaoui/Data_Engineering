@@ -5,32 +5,52 @@ from datetime import datetime
 def clean_apps_metadata(apps: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     print("Cleaning apps metadata...")
     cleaned_apps = []
-    
+
     for app in apps:
-        if not app.get('appId') or not app.get('title'):
+        # support multiple possible key names (schema drift)
+        app_id = app.get('appId') or app.get('app_id')
+        title = app.get('title') or app.get('name')
+        if not app_id or not title:
             continue
-            
+
+        developer = app.get('developer') or app.get('developerName') or 'Unknown'
+        developer_id = app.get('developerId') or app.get('developer_id')
+        category = app.get('genre') or app.get('genres')
+        rating_val = app.get('score') or app.get('rating')
+        ratings_count_val = app.get('ratings') or app.get('ratings_count')
+        installs = app.get('installs')
+        price = app.get('price')
+        free = app.get('free')
+        content_rating = app.get('contentRating') or app.get('content_rating')
+        released = app.get('released') or app.get('year')
+        if released is not None:
+            released = str(released)
+        updated = app.get('updated')
+        version = app.get('version')
+        description = app.get('description') or app.get('descr') or ''
+        summary = app.get('summary') or ''
+
         cleaned_app = {
-            'app_id': app.get('appId'),
-            'title': app.get('title'),
-            'developer': app.get('developer', 'Unknown'),
-            'developer_id': app.get('developerId'),
-            'category': app.get('genre'),
-            'rating': float(app.get('score', 0)) if app.get('score') else None,
-            'ratings_count': int(app.get('ratings', 0)) if app.get('ratings') else 0,
-            'installs': app.get('installs', '0'),
-            'price': float(app.get('price', 0)) if app.get('price') else 0.0,
-            'free': app.get('free', True),
-            'content_rating': app.get('contentRating'),
-            'released': app.get('released'),
-            'updated': app.get('updated'),
-            'version': app.get('version'),
-            'description': app.get('description', ''),
-            'summary': app.get('summary', '')
+            'app_id': app_id,
+            'title': title,
+            'developer': developer,
+            'developer_id': developer_id,
+            'category': category,
+            'rating': float(rating_val) if rating_val else None,
+            'ratings_count': int(ratings_count_val) if ratings_count_val else 0,
+            'installs': installs or '0',
+            'price': float(price) if price else 0.0,
+            'free': free if free is not None else True,
+            'content_rating': content_rating,
+            'released': released,
+            'updated': updated,
+            'version': version,
+            'description': description,
+            'summary': summary
         }
-        
+
         cleaned_apps.append(cleaned_app)
-    
+
     print(f"Cleaned {len(cleaned_apps)} app records")
     return cleaned_apps
 
@@ -38,34 +58,55 @@ def clean_apps_metadata(apps: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 def clean_apps_reviews(reviews: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     print("Cleaning apps reviews...")
     cleaned_reviews = []
-    
+
     for review in reviews:
-        if not review.get('app_id') or review.get('content') is None:
+        # handle drifted column names
+        app_id = review.get('app_id') or review.get('appId') or review.get('app')
+        content = review.get('content') or review.get('comments') or review.get('review_text')
+        if not app_id or content is None:
             continue
-        
-        review_date = review.get('at')
+
+        rating_val = review.get('score') or review.get('rating')
+        thumbs = review.get('thumbsUpCount') or review.get('thumbs_up_count') or 0
+        review_date = review.get('at') or review.get('date')
         if isinstance(review_date, str):
             try:
                 review_date = datetime.fromisoformat(review_date.replace('Z', '+00:00'))
             except:
                 review_date = None
-        
+
+        # parse numeric score safely
+        score_val = None
+        if rating_val is not None:
+            try:
+                score_val = int(rating_val)
+            except Exception:
+                try:
+                    score_val = int(float(rating_val))
+                except Exception:
+                    score_val = None
+        thumbs_int = None
+        try:
+            thumbs_int = int(thumbs)
+        except Exception:
+            thumbs_int = 0
+
         cleaned_review = {
-            'review_id': review.get('reviewId'),
-            'app_id': review.get('app_id'),
+            'review_id': review.get('reviewId') or review.get('review_id'),
+            'app_id': app_id,
             'app_name': review.get('app_name'),
-            'user_name': review.get('userName', 'Anonymous'),
-            'content': review.get('content', ''),
-            'score': int(review.get('score', 0)) if review.get('score') else None,
-            'thumbs_up_count': int(review.get('thumbsUpCount', 0)),
-            'review_created_version': review.get('reviewCreatedVersion'),
+            'user_name': review.get('userName') or review.get('user_name') or 'Anonymous',
+            'content': content,
+            'score': score_val,
+            'thumbs_up_count': thumbs_int,
+            'review_created_version': review.get('reviewCreatedVersion') or review.get('review_created_version'),
             'at': review_date.isoformat() if review_date else None,
-            'reply_content': review.get('replyContent'),
-            'replied_at': review.get('repliedAt')
+            'reply_content': review.get('replyContent') or review.get('reply_content'),
+            'replied_at': review.get('repliedAt') or review.get('replied_at')
         }
-        
+
         cleaned_reviews.append(cleaned_review)
-    
+
     print(f"Cleaned {len(cleaned_reviews)} review records")
     return cleaned_reviews
 
@@ -204,9 +245,15 @@ def transform_for_analytics(apps: List[Dict[str, Any]],
         agg = review_aggregates[app_id]
         agg['total_reviews'] += 1
         
-        if review['score']:
-            agg['score_sum'] += review['score']
-            agg[f"{review['score']}_star"] += 1
+        sc = review.get('score')
+        if sc:
+            # only aggregate valid star counts between 1 and 5
+            if isinstance(sc, (int, float)) and 1 <= int(sc) <= 5:
+                agg['score_sum'] += sc
+                agg[f"{int(sc)}_star"] += 1
+            else:
+                # ignore out-of-range or malformed scores
+                pass
         
         agg['total_thumbs_up'] += review['thumbs_up_count']
         

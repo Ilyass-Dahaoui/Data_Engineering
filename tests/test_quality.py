@@ -17,3 +17,11 @@ def test_check_reviews_types():
     bad = [{'review_id': 'r1', 'app_id': 'a1', 'score': 'notint'}]
     issues = check_reviews(bad)
     assert len(issues) == 1
+
+
+def test_check_reviews_range():
+    out = [{'review_id': 'r2', 'app_id': 'a1', 'score': 0},
+           {'review_id': 'r3', 'app_id': 'a1', 'score': 6}]
+    issues = check_reviews(out)
+    assert any('out of range' in msg for msg in issues)
+    assert len(issues) == 2
