@@ -5,7 +5,7 @@ with dates as (
 )
 
 select
-    row_number() over () as date_key,
+    cast(strftime(dt, '%Y%m%d') as integer) as date_key,
     dt as date,
     extract(year from dt) as year,
     extract(month from dt) as month,
