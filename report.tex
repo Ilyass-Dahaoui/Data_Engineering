@@ -1,0 +1,293 @@
+% Lab report for Data Engineering Labs 1 & 2
+% Tailored for Overleaf compilation
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{listings}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{geometry}
+\geometry{margin=1in}
+
+\title{Data Engineering Labs 1 \& 2 \\ Final Report}
+\author{Student Name}
+\date{February 2026}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Introduction}
+This document describes the work performed in Lab 1 and Lab 2 of the Data
+Engineering course. The objectives for Lab 2 were:
+
+\begin{itemize}
+  \item Install and set up the environment (DuckDB, dbt-core, dbt-duckdb).
+  \item Explore data modeling for analytics and construct a star schema.
+  \item Structure a data pipeline using dbt models, separating raw data,
+        transformation logic, and serving tables.
+  \item Apply data quality tests using dbt and pytest.
+  \item Prepare a stable serving layer for dashboards via DuckDB.
+\end{itemize}
+
+These goals build on Lab 1's Python pipeline, which ingested Google Play Store
+app and review data, performed cleaning, and produced analytics-ready outputs.
+Lab 2 extends that work by re-engineering the transformation stage using dbt
+and DuckDB.
+
+\section{Lab 1: Python Data Pipeline}
+
+\subsection{Architecture}
+The first lab pipeline was implemented entirely in Python. It consisted of:
+
+\begin{itemize}
+  \item Data ingestion from JSON files produced by a Google Play scraping tool.
+  \item Cleaning and standardization of app metadata and reviews.
+  \item Aggregation of review metrics and joining with app dimension.
+  \item Writing out processed JSON files for downstream analysis.
+\end{itemize}
+
+Figure~\ref{fig:lab1_arch} depicts the high-level architecture.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\linewidth]{pipeline stages.png}
+  \caption{Lab 1 Python pipeline architecture}
+  \label{fig:lab1_arch}
+\end{figure}
+
+\subsection{Data Quality Analysis}
+During Lab 1, an exploratory script identified several issues:
+
+\begin{enumerate}
+  \item Missing or null fields (developer, updated, etc.)
+  \item Inconsistent data types and formats (installs as strings, timestamps).
+  \item Reviews stored as a large JSONL file causing memory pressure.
+  \item Duplicate and orphaned reviews not detected.
+  \item Lack of validation resulting in silent failures.
+\end{enumerate}
+
+These findings motivated enhancements in Lab 2.
+
+More data arrived mid‑lab: three additional CSV files containing a second
+batch of reviews, a dirty file with non‑numeric ratings and missing ids,
+and an "apps_updated" file exhibiting schema drift (columns renamed or
+new types). Ingesting and processing these required extending the pipeline
+and provided rich examples for testing and quality checks.
+
+\subsection{Pipeline Fragility}
+The most fragile component was the lack of deduplication on review data.
+Re-running extraction appended the same reviews repeatedly, corrupting
+metrics. Additionally, hard-coded field names across modules made schema
+changes risky.
+
+\section{Enhancements Added in Lab 2}
+
+\subsection{Incremental Loading}
+A utility function \texttt{merge\_reviews} was written to merge new review
+records with existing processed data, keyed by \texttt{review\_id}. This
+allowed the pipeline to run repeatedly without duplicating rows.
+
+\subsection{Slowly Changing Dimension (SCD2)}
+App metadata changes are now tracked using SCD Type~2 logic. The
+history table \texttt{apps\_metadata\_scd2.json} contains \texttt{start\_date},
+\texttt{end\_date}, and \texttt{current\_flag}. Python code performing the
+upsert is located in \texttt{src/utils.py}.
+
+\subsection{Data Quality and Testing}
+A new module \texttt{quality.py} implements basic checks that report missing
+IDs, type mismatches, and out-of-range values (scores outside 1–5).
+The pipeline prints a summary before aggregation and halts if severe
+issues occur.  Example log output from a full pipeline run (including
+warnings about malformed ratings) is shown in Figure~\ref{fig:pipeline_log}.
+
+PyTest tests cover utility functions, the overall pipeline, and the new
+quality rules; additional tests simulate schema drift by feeding CSV files
+with alternate column names. Screenshots of pytest output are shown in
+Figure~\ref{fig:pytest}.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\linewidth]{pipeline_run.png}
+  \caption{Pipeline execution log displaying data quality messages}
+  \label{fig:pipeline_log}
+\end{figure}
+
+The test suite was executed inside a virtual environment to ensure
+consistent dependencies. A failed run earlier highlighted a problem when
+``released`` was parsed as an integer; this was fixed by normalizing values
+to strings.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\linewidth]{pytest.png}
+  \caption{Automated tests passing}
+  \label{fig:pytest}
+\end{figure}
+
+\subsection{Star Schema Export}
+The pipeline can now emit a five-table star schema (dimensions
+\texttt{dim\_apps}, \texttt{dim\_categories}, \texttt{dim\_developers},
+\texttt{dim\_date}; \texttt{fact\_reviews}) as JSON. The star schema
+structure was critical for comparing the Python-based approach with the
+later dbt model outputs.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\linewidth]{star.png}
+  \caption{Final star schema generated by pipeline}
+  \label{fig:star}
+\end{figure}
+
+Processing the supplementary CSVs produced a minor quality warning during
+initial runs (non-numeric ``five`` rating). The parser and quality checks
+were updated accordingly, demonstrating the value of early validation.
+
+\section{dbt \,\&\, DuckDB-based Pipeline (Lab 2)}
+
+\subsection{Handling Additional Raw Files and Schema Drift}
+In order to absorb the extra CSV files provided late in the lab, the
+Python ingestion logic was extended. A generic \texttt{load\_csv\_file}
+helper normalizes values, trims whitespace, and interprets numeric strings.
+The \texttt{ingest\_apps\_metadata} and \texttt{ingest\_apps\_reviews}
+functions now scan the raw directory for any CSV files matching expected
+patterns, making the pipeline more resilient to ad hoc batches.  
+
+Schema drift was explicitly addressed: the cleaning routines now look for
+alternate field names such as ``rating`` vs. ``score`` or ``appId`` vs.
+``app_id`` and coerce types where possible. This made the pipeline
+robust to the ``apps_updated.csv`` file, which used a ``year`` column
+for release date and an integer ``rating`` value.  
+
+These enhancements are documented in the source comments and captured by
+new unit tests. The tests create temporary CSVs replicating drift scenarios
+and assert the cleaned output contains the expected fields.
+
+During development the repository accumulated several auxiliary files
+(PDFs exported from overleaf, QA prompts, dbt logs).  To keep the
+project focused, these were later removed and a cleanup commit pushed
+to GitHub, leaving only the code, data and relevant documentation.
+
+
+\subsection{Environment Setup}
+DuckDB and the dbt-duckdb adapter were installed in the same virtual
+environment used for Lab 1.
+
+\begin{lstlisting}[language=bash]
+python -m pip install duckdb dbt-core dbt-duckdb
+dbt --version
+\end{lstlisting}
+
+The last command produces output similar to Figure~\ref{fig:dbt_test},
+which confirms that the installation was successful.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\linewidth]{dbt test.png}
+  \caption{dbt test output demonstrating data quality checks}
+  \label{fig:dbt_test}
+\end{figure}
+
+\subsection{Project Structure}
+The dbt project resides in \texttt{dbt\_project/}. Key files:
+
+\begin{itemize}
+  \item \texttt{dbt\_project.yml} – project configuration.
+  \item \texttt{profiles.yml} – DuckDB connection pointing to
+        \texttt{dbt.duckdb}.
+  \item \texttt{models/staging/stg\_apps.sql} and
+        \texttt{stg\_reviews.sql} – staging models reading raw
+        JSON using DuckDB's \texttt{read\_json\_auto}.
+  \item \texttt{models/marts/} – dimension and fact models implementing the
+        star schema in SQL.
+  \item \texttt{models/staging/schema.yml} – contains data quality tests.
+\end{itemize}
+
+\begin{lstlisting}[language=yaml]
+version: 2
+models:
+  - name: stg_apps
+    columns:
+      - name: app_id
+        tests:
+          - not_null
+          - unique
+  - name: stg_reviews
+    columns:
+      - name: review_id
+        tests:
+          - not_null
+          - unique
+      - name: app_id
+        tests:
+          - not_null
+\end{lstlisting}
+
+\subsection{Execution}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\linewidth]{dbt run.png}
+  \caption{dbt run output with all models built}
+  \label{fig:dbt_run}
+\end{figure}
+
+\subsection{Data Quality Tests}
+After adding the tests, the command \texttt{dbt test} produced only PASS
+results, showing that identifiers are present and unique.
+
+\subsection{Serving Layer}
+The resulting DuckDB file (\texttt{dbt.duckdb}) contains the dimension and fact
+relations, suitable for consumption by BI tools.
+
+\section{Python-only vs dbt-based Comparison}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}lll@{}}
+\toprule
+Feature & Python pipeline & dbt pipeline \\
+\midrule
+Transformation language & Python functions & SQL models \\
+Incremental/SCD2 support & Manual (utils) & dbt snapshot/incremental \\
+Testing & PyTest & dbt tests \\
+Installation & pip & pip + dbt plugins \\
+Execution & script run & \texttt{dbt run} \\
+Warehouse requirement & None & DuckDB file \\
+\bottomrule
+\end{tabular}
+\caption{Comparison of implementation approaches}
+\end{table}
+
+\section{Reflections}
+
+\subsection{Most fragile element}
+Prior to enhancements, the review ingestion logic was extremely brittle;
+a repeated run produced thousands of duplicates. The tight coupling between
+transformation and analytics logic (everything in
+\texttt{transform\_for\_analytics}) was also problematic.
+
+\subsection{Architectural insight}
+Centralising configuration in a \texttt{config} module and deferring access to it at
+runtime allowed the code to be easily patched during tests.
+
+\subsection{Design change I would make}
+I would abstract schema definitions and field names so that changing a column
+requires editing a single location instead of multiple modules.
+
+\section{Conclusion}
+The labs provided hands-on experience building a complete data pipeline from
+scratch using Python and then refactoring the transformation layer to dbt
+running on DuckDB. Both implementations coexist in this repository and can
+be executed independently.
+
+\appendix
+
+\end{document}
