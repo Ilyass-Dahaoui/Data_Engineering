@@ -136,5 +136,59 @@
     "developer_name": "Zoho Corporation",
     "developer_website": null,
     "developer_email": null
+  },
+  {
+    "developer_key": 24,
+    "developer_name": "Fake Dev",
+    "developer_website": null,
+    "developer_email": null
+  },
+  {
+    "developer_key": 25,
+    "developer_name": "Notewise Inc.",
+    "developer_website": null,
+    "developer_email": null
+  },
+  {
+    "developer_key": 26,
+    "developer_name": "NewNote Labs",
+    "developer_website": null,
+    "developer_email": null
+  },
+  {
+    "developer_key": 27,
+    "developer_name": "Ghost Team",
+    "developer_website": null,
+    "developer_email": null
+  },
+  {
+    "developer_key": 28,
+    "developer_name": "Unknown Dev",
+    "developer_website": null,
+    "developer_email": null
+  },
+  {
+    "developer_key": 29,
+    "developer_name": "Transcribo Ltd",
+    "developer_website": null,
+    "developer_email": null
+  },
+  {
+    "developer_key": 30,
+    "developer_name": "LectureNote Studio",
+    "developer_website": null,
+    "developer_email": null
+  },
+  {
+    "developer_key": 31,
+    "developer_name": "Memo Corp",
+    "developer_website": null,
+    "developer_email": null
+  },
+  {
+    "developer_key": 32,
+    "developer_name": "NotepadX",
+    "developer_website": null,
+    "developer_email": null
   }
 ]

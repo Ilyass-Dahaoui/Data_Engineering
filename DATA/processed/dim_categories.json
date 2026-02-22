@@ -2,5 +2,9 @@
   {
     "category_key": 1,
     "category_name": "Productivity"
+  },
+  {
+    "category_key": 2,
+    "category_name": "Education"
   }
 ]

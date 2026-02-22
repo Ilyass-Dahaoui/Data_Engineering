@@ -310,5 +310,113 @@
     "installs": "5,000,000+",
     "catalog_rating": 4.14841,
     "ratings_count": 62848
+  },
+  {
+    "app_key": 27,
+    "app_id": "com.otter.ai",
+    "app_name": "Otter AI Duplicate",
+    "developer_key": 24,
+    "category_key": 1,
+    "price": 0.0,
+    "is_paid": false,
+    "installs": 10000,
+    "catalog_rating": 3.1,
+    "ratings_count": 120
+  },
+  {
+    "app_key": 28,
+    "app_id": "com.notewise.ai",
+    "app_name": "Notewise",
+    "developer_key": 25,
+    "category_key": 1,
+    "price": 0.0,
+    "is_paid": false,
+    "installs": 500000,
+    "catalog_rating": 4.6,
+    "ratings_count": 1200
+  },
+  {
+    "app_key": 29,
+    "app_id": "com.newnote.ai",
+    "app_name": "NewNote",
+    "developer_key": 26,
+    "category_key": 1,
+    "price": 0.0,
+    "is_paid": false,
+    "installs": 25000,
+    "catalog_rating": 4.0,
+    "ratings_count": 85
+  },
+  {
+    "app_key": 30,
+    "app_id": "com.ghost.notes",
+    "app_name": "Ghost Notes AI",
+    "developer_key": 27,
+    "category_key": 2,
+    "price": 0.0,
+    "is_paid": false,
+    "installs": 1200,
+    "catalog_rating": 4.8,
+    "ratings_count": 12
+  },
+  {
+    "app_key": 31,
+    "app_id": "com.unknown.ai",
+    "app_name": "Unknown Notes",
+    "developer_key": 28,
+    "category_key": 2,
+    "price": 0.0,
+    "is_paid": false,
+    "installs": "0",
+    "catalog_rating": null,
+    "ratings_count": 0
+  },
+  {
+    "app_key": 32,
+    "app_id": "com.transcribo.ai",
+    "app_name": "Transcribo",
+    "developer_key": 29,
+    "category_key": 1,
+    "price": 0.0,
+    "is_paid": false,
+    "installs": 78000,
+    "catalog_rating": 4.2,
+    "ratings_count": 640
+  },
+  {
+    "app_key": 33,
+    "app_id": "com.lecturenote.ai",
+    "app_name": "LectureNote AI",
+    "developer_key": 30,
+    "category_key": 2,
+    "price": 0.0,
+    "is_paid": false,
+    "installs": 34000,
+    "catalog_rating": 4.5,
+    "ratings_count": 310
+  },
+  {
+    "app_key": 34,
+    "app_id": "com.memo.ai",
+    "app_name": "Memo AI",
+    "developer_key": 31,
+    "category_key": 1,
+    "price": 0.0,
+    "is_paid": false,
+    "installs": "50,000+",
+    "catalog_rating": 4.1,
+    "ratings_count": 980
+  },
+  {
+    "app_key": 35,
+    "app_id": "com.notepadx.ai",
+    "app_name": "NotepadX",
+    "developer_key": 32,
+    "category_key": 1,
+    "price": 0.0,
+    "is_paid": false,
+    "installs": 12000,
+    "catalog_rating": null,
+    "ratings_count": 45
   }
 ]
